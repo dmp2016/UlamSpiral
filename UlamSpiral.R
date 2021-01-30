@@ -2,30 +2,47 @@ library(ggplot2)
 install.packages("matlab")
 library(matlab)
 
-
 num_to_xy <- function(n){
-  L <- ceiling((sqrt(n) - 1) / 2)
-  d <- L * 2 - 1
-  r <- (n - d*d)
-  r[L > 0] = r[L > 0] %% (8*L[L > 0])
-  part <- r %/% (2*L)
+  # Точки располагаются на сторонах квадратов с нечётными длинами сторон 2*sn + 1,
+  # где sn - номер квадрата, начиная с нуля. 
+  # Откуда находим номер квадрата, на стороне которого находится n:
+  sn <- ceiling((sqrt(n) - 1) / 2)
+  # Количество точек внутри квадрата с номером sn равно количеству точек в квадрате
+  # с предыдущим номером или его площади. Так как сторона квадрата 
+  # такого квадрата равна (sn - 1) * 2 + 1 = 2*sn - 1, то количество внутренних 
+  # точек равно (2*sn - 1) ^ 2
+  cnt_internal <- (2*sn - 1) ^ 2
+  # Для sn == 0 получим cnt_internal == -1, скорретируем это значение вручную.
+  cnt_internal[n == 0] = 0
+  # Номер точки на границе текущего квадрата. Номер 1 соответствует правому
+  # нижнему углу.
+  residual <- (n - cnt_internal)
+  residual[sn > 0] = residual[sn > 0] %% (8 * sn[sn > 0])
+  part <- residual %/% (2*sn)
+  p <- 2*sn
   x <- rep(0, length(part))
-  p <- 2*L
-  x[part == 0] = L[part == 0]
-  x[part == 1] = L[part == 1] - (r[part == 1] - p[part == 1])
-  x[part == 2] = -L[part == 2]
-  x[part == 3] = -L[part == 3] + (r[part == 3] - 3*p[part == 3])
+  x[part == 0] = sn[part == 0]
+  x[part == 1] = sn[part == 1] - (residual[part == 1] - p[part == 1])
+  x[part == 2] = -sn[part == 2]
+  x[part == 3] = -sn[part == 3] + (residual[part == 3] - 3*p[part == 3])
   y = rep(0, length(part))
-  y[part == 0] = -L[part == 0] + r[part == 0]
-  y[part == 1] = L[part == 1]
-  y[part == 2] = L[part == 2] - (r[part == 2] - 2*p[part == 2])
-  y[part == 3] = -L[part == 3]
+  y[part == 0] = -sn[part == 0] + residual[part == 0]
+  y[part == 1] = sn[part == 1]
+  y[part == 2] = sn[part == 2] - (residual[part == 2] - 2*p[part == 2])
+  y[part == 3] = -sn[part == 3]
   return(data.frame(x, y))
 }
 
 
+sn <- ceiling((sqrt(1:30) - 1) / 2)
+2 * (sn - 1) + 1
+1
+9
+25
 
-k <- 10000
+sn * 2 - 1
+
+k <- 100000
 
 !(1:5 == 3)
 
@@ -48,10 +65,30 @@ primes2 <- primes2[as.logical(isprime(primes2))]
 primes <- (1:k)[as.logical(isprime(1:k))]
 df <- num_to_xy(primes)
 
-primes3 <- (1:k)
-primes3 <- primes3[((1:k) %% 23 != 1)]
+
+
+primes3 <- (2:k)
+primes3 <- primes3[(primes3 %% 4 == 1)]
 primes3 <- primes3[as.logical(isprime(primes3))]
+length(primes3)
+primes3 <- primes3[sample(1:length(primes3), length(primes3) %/% 5)]
 df3 <- num_to_xy(primes3)
+
+ggplot() + 
+  geom_point(mapping = aes(x = df3$x, y = df3$y), 
+             col = "red", size = 1)
+
+
+  geom_point(mapping = aes(x = seq(-100, 100, 4), y = -seq(-100, 100, 4))) +
+  geom_point(mapping = aes(x = seq(-100, 100, 4), y = -seq(-100, 100, 4) + 1))
+
+ggplot() + 
+  geom_point(mapping = aes(x = seq(-100, 100, 1), y = -seq(-100, 100, 1)))
+
+  geom_point(mapping = aes(x = seq(-100, 100, 2), y = -seq(-100, 100, 2)))
+
+seq(1, 10, 2)
+1:10:2
 
 primes4 <- (1:k)
 primes4 <- primes4[((1:k) %% 23 == 1)]
