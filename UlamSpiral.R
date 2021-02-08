@@ -42,7 +42,7 @@ sn <- ceiling((sqrt(1:30) - 1) / 2)
 
 sn * 2 - 1
 
-k <- 100000
+k <- 500000
 
 !(1:5 == 3)
 
@@ -66,18 +66,53 @@ primes <- (1:k)[as.logical(isprime(1:k))]
 df <- num_to_xy(primes)
 
 
-
+k <- 100000
 primes3 <- (2:k)
-primes3 <- primes3[(primes3 %% 4 == 1)]
+# primes3 <- primes3[(primes3 %% 4 == 1)]
 primes3 <- primes3[as.logical(isprime(primes3))]
 length(primes3)
-primes3 <- primes3[sample(1:length(primes3), length(primes3) %/% 5)]
+# primes3 <- primes3[sample(1:length(primes3), length(primes3) %/% 5)]
 df3 <- num_to_xy(primes3)
+df4 <- num_to_xy(2:k)
+
+df_rand = data.frame(x = sample(-150:150, size = 50, replace = TRUE), 
+                     y = sample(-150:150, size = 50, replace = TRUE))
+
 
 ggplot() + 
+  geom_point(mapping = aes(x = df_rand$x, y = df_rand$y), 
+             col = "blue", size = 3) + 
   geom_point(mapping = aes(x = df3$x, y = df3$y), 
-             col = "red", size = 1)
+             col = "red", size = 1) 
+# + geom_path(mapping = aes(x = df4$x, y = df4$y))
 
+
+df_rand = data.frame(x = sample(-150:150, size = 50, replace = TRUE), 
+                     y = sample(-150:150, size = 50, replace = TRUE))
+df_a <- merge(df3, df_rand)
+
+x <- sample(-100:100, size = 50, replace = TRUE)
+y = x
+df_diag = data.frame(x = x, y = y + sample(-50:50, size = 1))
+
+df_b <- merge(df3, df_diag)
+
+df_vert <- data.frame(x = sample(-100:100, size = 50, replace = TRUE), y = sample(-100:100, size = 1))
+df_c <- merge(df3, df_vert)
+
+nrow(df_a)
+nrow(df_b)
+nrow(df_c)
+
+c(1, 2, 3)
+
+ps <- sample(1:100000, size = 50)
+sum(isprime(ps))
+n <- 100000
+50*n/(100000*log(n))
+
+
+sum((df3$x == x) & (df3$y == y))
 
   geom_point(mapping = aes(x = seq(-100, 100, 4), y = -seq(-100, 100, 4))) +
   geom_point(mapping = aes(x = seq(-100, 100, 4), y = -seq(-100, 100, 4) + 1))
@@ -88,7 +123,7 @@ ggplot() +
   geom_point(mapping = aes(x = seq(-100, 100, 2), y = -seq(-100, 100, 2)))
 
 seq(1, 10, 2)
-1:10:2
+
 
 primes4 <- (1:k)
 primes4 <- primes4[((1:k) %% 23 == 1)]
