@@ -1,4 +1,5 @@
 library(ggplot2)
+library(dplyr)
 install.packages("matlab")
 library(matlab)
 
@@ -34,17 +35,137 @@ num_to_xy <- function(n){
 }
 
 
-sn <- ceiling((sqrt(1:30) - 1) / 2)
-2 * (sn - 1) + 1
-1
-9
-25
+# Размер скатерти (от нуля до ...)
+K <- 150
 
-sn * 2 - 1
+# Чисел на скатерти
+N <- (2*K + 1)^2
 
-k <- 500000
+# Простые числа на скатерти Улама
+prime_nums <- primes(N)
+df_prime <- num_to_xy(prime_nums)
 
-!(1:5 == 3)
+ggplot() + 
+  geom_point(mapping = aes(x = df_prime$x, y = df_prime$y), 
+             col = "red", size = 0.5) +
+  scale_x_continuous(limits = c(-K, K), breaks = seq(-K, K, 50)) +
+  scale_y_continuous(limits = c(-K, K), breaks = seq(-K, K, 50)) +
+  xlab(NULL) +
+  ylab(NULL) +
+  ggtitle("Простые числа на скатерти Улама")
+
+
+nrow(df_prime)/N
+1/log(N)
+
+# Случайные числа на скатерти Улама
+rand_nums <- sample(2:N, length(prime_nums))
+df_rand <- num_to_xy(rand_nums)
+
+ggplot() + 
+  geom_point(mapping = aes(x = df_rand$x, y = df_rand$y), 
+             col = "red", size = 0.5) +
+  scale_x_continuous(limits = c(-K, K), breaks = seq(-K, K, 50)) +
+  scale_y_continuous(limits = c(-K, K), breaks = seq(-K, K, 50)) +
+  xlab(NULL) +
+  ylab(NULL) +
+  ggtitle("Случайные числа на скатерти Улама")
+
+
+# Размер выборки, не более 2*K
+SAMPLE_SIZE <- 100
+
+# Подсчет попавшей в заданный датасет доли выборки из SAMPLE_SIZE случайных точек
+rand_sample_part <- function(df) {
+  # Точки могут повторяться, реальный размер выборки может оказаться немного меньше SAMPLE_SIZE
+  df_sample <- data.frame(x = sample(-K:K, size = SAMPLE_SIZE, replace = TRUE), 
+                          y = sample(-K:K, size = SAMPLE_SIZE, replace = TRUE)) %>% distinct()
+  return(nrow(merge(df_sample, df))/nrow(df_sample))
+}
+
+prime_parts <- replicate(300, rand_sample_part(df_prime))
+hist(prime_parts)
+mean(prime_parts)
+sd(prime_parts)
+
+rand_parts <- replicate(300, rand_sample_part(df_rand))
+mean(rand_parts)
+hist(rand_parts)
+sd(rand_parts)
+
+
+# Подсчет попавшей в заданный датасет доли выборки из SAMPLE_SIZE случайных точек, лежащих на 
+# случайном вертикальном отрезке
+vert_sample_part <- function(df) {
+  # Точки могут повторяться, реальный размер выборки может оказаться немного меньше SAMPLE_SIZE
+  df_sample <- data.frame(x = sample(-K:K, size = 1),
+                          y = sample(-K:K, size = SAMPLE_SIZE))
+  return(nrow(merge(df_sample, df))/nrow(df_sample))
+}
+
+vert_prime_parts <- replicate(300, vert_sample_part(df_prime))
+hist(vert_prime_parts)
+mean(vert_prime_parts)
+sd(vert_prime_parts)
+
+# Подсчет попавшей в заданный датасет доли выборки из SAMPLE_SIZE случайных точек, лежащих на 
+# случайном горизонтальном отрезке
+horiz_sample_part <- function(df) {
+  # Точки могут повторяться, реальный размер выборки может оказаться немного меньше SAMPLE_SIZE
+  df_sample <- data.frame(x = sample(-K:K, size = SAMPLE_SIZE),
+                          y = sample(-K:K, size = 1))
+  return(nrow(merge(df_sample, df))/nrow(df_sample))
+}
+
+
+horiz_prime_parts <- replicate(300, vert_sample_part(df_prime))
+hist(horiz_prime_parts)
+mean(horiz_prime_parts)
+sd(horiz_prime_parts)
+
+
+# Подсчет попавшей в заданный датасет доли выборки из 100 случайных точек, 
+# лежащих на случайной диагонали левый верхний  - правый нижний угол
+diag_sample_part <- function(df) {
+  # Точки могут повторяться, реальный размер выборки может оказаться немного меньше SAMPLE_SIZE
+  ds = sample(0:200, 100)
+  xs = sample(-150:-50, 1) + ds
+  ys = sample(50:150, 1) - ds
+  df_sample <- data.frame(x = xs, y = ys)
+  return(nrow(merge(df_sample, df))/nrow(df_sample))
+}
+
+diag_prime_parts <- replicate(300, diag_sample_part(df_prime))
+hist(diag_prime_parts, breaks = 20)
+mean(diag_prime_parts)
+
+diag_rand_parts <- replicate(300, diag_sample_part(df_rand))
+hist(diag_rand_parts, breaks = 20)
+mean(diag_rand_parts)
+
+
+prime4_1 <- prime_nums[prime_nums %% 4 == 1]
+length(prime4_1)/N
+df_prime4_1 <- num_to_xy(prime4_1)
+
+
+diag_prime4_1_parts <- replicate(300, diag_sample_part(df_prime4_1))
+hist(diag_prime4_1_parts, breaks = 20)
+
+
+
+
+
+
+
+
+
+
+
+
+
+rand_sample_part(df_prime)
+rand_sample_part(df_rand)
 
 primes2 <- (1:k)
 primes2 <- (1:k) * 3 + 1
@@ -66,9 +187,9 @@ primes <- (1:k)[as.logical(isprime(1:k))]
 df <- num_to_xy(primes)
 
 
-k <- 100000
+k <- 301^2
 primes3 <- (2:k)
-# primes3 <- primes3[(primes3 %% 4 == 1)]
+primes3 <- primes3[(primes3 %% 4 == 1)]
 primes3 <- primes3[as.logical(isprime(primes3))]
 length(primes3)
 # primes3 <- primes3[sample(1:length(primes3), length(primes3) %/% 5)]
@@ -80,15 +201,21 @@ df_rand = data.frame(x = sample(-150:150, size = 50, replace = TRUE),
 
 
 ggplot() + 
-  geom_point(mapping = aes(x = df_rand$x, y = df_rand$y), 
-             col = "blue", size = 3) + 
   geom_point(mapping = aes(x = df3$x, y = df3$y), 
-             col = "red", size = 1) 
+             col = "red", size = 0.5)
+
+  
+ggplot() + 
+  geom_point(mapping = aes(x = df4$x, y = df4$y), 
+             col = "red", size = 1)
+  
+    
 # + geom_path(mapping = aes(x = df4$x, y = df4$y))
 
 
 df_rand = data.frame(x = sample(-150:150, size = 50, replace = TRUE), 
                      y = sample(-150:150, size = 50, replace = TRUE))
+
 df_a <- merge(df3, df_rand)
 
 x <- sample(-100:100, size = 50, replace = TRUE)
